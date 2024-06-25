@@ -9,7 +9,7 @@ const activeRequest = mongoose.Schema(
         }
     },
     {
-        timestamp:true
+        timestamps:true
     }
 )
 

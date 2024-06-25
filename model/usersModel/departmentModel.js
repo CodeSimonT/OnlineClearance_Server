@@ -30,7 +30,7 @@ const departmentModel = mongoose.Schema(
         },
     },
     {
-        timestamp:true
+        timestamps:true
     }
 )
 
