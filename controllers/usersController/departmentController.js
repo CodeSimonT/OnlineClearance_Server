@@ -8,12 +8,12 @@ const registerDepartment = async (req, res) => {
     try {
         const saltRounds = 10;
         const deFaultPasswords = "admin123";
-        console.log(req.body)
+
         bcrypt.hash(deFaultPasswords, saltRounds, async function(err, hash) {
             if (err) {
                 return res.status(500).json({ message: err.message });
             }
-            console.log('fck programming')
+
             try {
                 const departmentInfo = await department.create({
                     department:req.body.department,
@@ -38,6 +38,38 @@ const registerDepartment = async (req, res) => {
     }
 }
 
+const loginDepartment = async (req, res) => {
+    try {
+        const { departmentName, password } = req.body;
+        console.log(departmentName)
+        // Find the department by name
+        const departmentList = await department.findOne({ department: departmentName });
+        if (!departmentList) {
+            return res.status(401).json({ message: "Department not registered!" });
+        }
+
+        // Compare the provided password with the stored hash
+        const isMatch = await bcrypt.compare(password, departmentList.password);
+        if (!isMatch) {
+            return res.status(401).json({ message: 'Incorrect password' });
+        }
+
+        // Generate token
+        const token = jwt.sign(
+            { departmentID: departmentList._id },
+            process.env.ACCESS_TOKEN_SECRET,
+            { expiresIn: '7d' }
+        );
+
+        // Send the token as a response
+        res.status(200).json({ token, departmentID: departmentList._id });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+}
+
 module.exports = {
-    registerDepartment
+    registerDepartment,
+    loginDepartment
 }
