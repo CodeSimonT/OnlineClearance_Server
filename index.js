@@ -5,20 +5,25 @@ require('dotenv').config();
 
 const departmentRoutes = require('./routes/usersRoutes/departmentRoutes');
 
-//middle ware
+// Middleware
 const app = express();
-app.use(express.json);
+app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cors());
 
-//routes
+// Routes
 app.use(departmentRoutes)
 
+app.get('/test', (req, res) => {
+    res.send('API is working');
+});
+
 mongoose.connect(process.env.MONGODB_URI)
-.then(()=>{
-    app.listen(3000, ()=>{
-        console.log('Server is running...')
+    .then(() => {
+        app.listen(3000, () => {
+            console.log('Server is running...');
+        });
     })
-}).catch((err)=>{
-    console.log(err);
-})
+    .catch((err) => {
+        console.log(err);
+    });
