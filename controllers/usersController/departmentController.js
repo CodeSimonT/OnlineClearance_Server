@@ -19,7 +19,11 @@ const registerDepartment = async (req, res) => {
                     department:req.body.department,
                     firstName:req.body.firstName,
                     lastName:req.body.lastName,
-                    email:req.body.email,
+                    email:{
+                        email:req.body.email,
+                        verified:false,
+                        temp:''
+                    },
                     password:hash,
                     activeRequest:req.body.department,
                 });
@@ -57,7 +61,7 @@ const loginDepartment = async (req, res) => {
         // Generate token
         const token = jwt.sign(
             { departmentID: departmentList._id },
-            process.env.ACCESS_TOKEN_SECRET,
+            process.env.ACCESS_ADMIN_TOKEN,
             { expiresIn: '7d' }
         );
 
@@ -65,11 +69,37 @@ const loginDepartment = async (req, res) => {
         res.status(200).json({ token, departmentID: departmentList._id });
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ message: 'Internal server error' });
+        return res.status(500).json({ message: error });
+    }
+}
+
+const getSingleDepartment = async(req,res)=>{
+    try {
+        const id = req.query.id;
+        console.log(id)
+            const departmentData = await department.findById(id)
+
+                if(!departmentData){
+                    return res.status(404).json({message:"Department not found!"})
+                }
+
+                const newdepartmentData = {
+                    _id:departmentData._id,
+                    department:departmentData.department,
+                    firstName:departmentData.firstName,
+                    lastName:departmentData.lastName,
+                    email:departmentData.email,
+                    activeRequest:departmentData.activeRequest
+                }
+
+            return res.status(201).json(newdepartmentData)
+    } catch (error) {
+        return res.status(500).json({ message: error });
     }
 }
 
 module.exports = {
     registerDepartment,
-    loginDepartment
+    loginDepartment,
+    getSingleDepartment
 }

@@ -4,7 +4,7 @@ const cors = require('cors');
 require('dotenv').config();
 
 const departmentRoutes = require('./routes/usersRoutes/departmentRoutes');
-
+const emailSender = require('./controllers/emailSender');
 // Middleware
 const app = express();
 app.use(express.json());
@@ -22,6 +22,7 @@ mongoose.connect(process.env.MONGODB_URI)
     .then(() => {
         app.listen(3000, () => {
             console.log('Server is running...');
+            emailSender();
         });
     })
     .catch((err) => {
