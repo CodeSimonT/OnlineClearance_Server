@@ -15,7 +15,7 @@ const departmentModel = mongoose.Schema(
             required:true
         },
         email:{
-            type:Object,
+            type:String,
             required:false,
             default:''
         },

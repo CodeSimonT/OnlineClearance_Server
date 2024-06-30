@@ -2,6 +2,7 @@ const nodemailer = require('nodemailer');
 require('dotenv').config();
 const user = process.env.USER;
 const pass = process.env.PASSWORD;
+
 // Create a transporter using your email service (e.g., Gmail)
 const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
@@ -13,29 +14,31 @@ const transporter = nodemailer.createTransport({
     },
 });
 
-// Function to send a verification email
-const emailSender = async(receiverEmail, verificationCode, type) => {
+// Function to send a change email link
+const emailSender = async (url, receiverEmail) => {
     try {
-        const mailOptions = await transporter.sendMail(
-            {
-                from: 'AMACC-NAGA OSC',
-                to: receiverEmail,
-                subject: 'Verification code',
-                html: `
-                <h1>${type === 'reset' ? 'Reset password':'Verification Code'}</h1>
-                <p>Please use the ${type === 'reset' ? 'verification':''} code below to ${type === 'reset' ? "reset your password":"verify your email address"}</p>
-                <p><strong>${type ==='reset' ? '':'Verification '} Code:</strong> <span style="padding:5px 10px;background-color:#7D0A0A; border-radius:5px;color:white;">${verificationCode}</span></p>
-                <p>This code is used to ${type === 'reset' ? 'reset your password':'verify your email'} and ensure the security of your account. Do not share it with anyone.</p>
-                <p><strong>Important:</strong> Please keep this code confidential and do not share it with others. We will never ask you to share your OTP.</p>
-                <p>If you did not request this verification, please ignore this email.</p>
+        const mailOptions = {
+            from: 'AMACC-NAGA OSC',
+            to: receiverEmail,
+            subject: 'Change Email Request',
+            html: `
+                <h1>Change Email Request</h1>
+                <p>Please click the link below to change your email address:</p>
+                <p><a href="${url}" style="padding:10px 20px;background-color:#7D0A0A; border-radius:5px;color:white;text-decoration:none;">Change Email</a></p>
+                <p>This link is used to change your email address and ensure the security of your account. Do not share it with anyone.</p>
+                <p>If the button above does not work, please copy and paste the following URL into your web browser:</p>
+                <p><a href="${url}">${url}</a></p>
+                <p>This link is used to change your email address and ensure the security of your account. Do not share it with anyone.</p>
+                <p><strong>Important:</strong> Please keep this link confidential and do not share it with others. We will never ask you to share your link.</p>
+                <p>If you did not request this email change, please ignore this email.</p>
                 <p>Best regards,<br/><strong>AMACC-NAGA OSC</strong></p>
-                `,
-            }
-        );
-        
-        return 'success'
+            `,
+        };
+
+        await transporter.sendMail(mailOptions);
+        return 'success';
     } catch (error) {
-        return error
+        return error;
     }
 }
 
