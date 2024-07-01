@@ -23,13 +23,9 @@ const registerDepartment = async (req, res) => {
                     department:req.body.department,
                     firstName:req.body.firstName,
                     lastName:req.body.lastName,
-                    email:{
-                        email:req.body.email,
-                        verified:false,
-                        temp:''
-                    },
+                    email:req.body.email,
                     password:hash,
-                    activeRequest:req.body.department,
+                    activeRequest:'',
                 });
                 const activeRequest = await activeRequestSchema.create({ request: [] });
 
@@ -45,6 +41,55 @@ const registerDepartment = async (req, res) => {
         return res.status(500).json({ message: error.message });
     }
 }
+
+const handleGetAllDepartment = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1; // Get the page number from query, default to 1
+        const limit = parseInt(req.query.limit) || 10; // Get the limit from query, default to 10
+        const skip = (page - 1) * limit; // Calculate the number of documents to skip
+
+        const totalDepartments = await department.countDocuments(); // Get the total number of documents
+        const totalPages = Math.ceil(totalDepartments / limit); // Calculate the total number of pages
+
+        const departmentList = await department.find().skip(skip).limit(limit); // Fetch the paginated data
+
+        if (!departmentList.length) {
+            return res.status(404).json({ message: 'No department found' });
+        }
+
+        let filteredData = departmentList.map((data) => ({
+            _id: data._id,
+            department: data.department,
+            firstName: data.firstName,
+            lastName: data.lastName,
+            email: data.email
+        }));
+
+        return res.status(200).json({
+            departments: filteredData,
+            currentPage: page,
+            totalPages: totalPages,
+            totalDepartments: totalDepartments
+        });
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+};
+
+const handleUpdateInformation = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const filteredBody = Object.fromEntries(
+            Object.entries(req.body).filter(([key, value]) => value !== null && value !== undefined && value !== '')
+        );
+
+        await department.findByIdAndUpdate(id, filteredBody);
+
+        return res.status(201).json({ message: 'Updated successfully', data: filteredBody });
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+};
 
 const loginDepartment = async (req, res) => {
     try {
@@ -391,10 +436,41 @@ const updateAndAuthenticateEmail = async (req, res) => {
     }
 };
 
+const updatePassword = async(req,res)=>{
+    try {
+        const { password, userID } = req.body;
+        console.log(req.body)
+        if(!password || !userID){
+            return res.status(401).json({message:'No credentials found'})
+        }
+        
+        const saltRounds = 10;
+
+        bcrypt.hash(password, saltRounds, async function(err, hash) {
+            if (err) {
+                return res.status(500).json({ message: err.message });
+            }
+
+            try {
+                await department.findByIdAndUpdate(userID,{password:hash})
+
+                return res.status(201).json({ message: 'Password updated successfully' });
+            } catch (error) {
+                return res.status(500).json({ message: error.message });
+            }
+        });
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+}
+
 module.exports = {
     registerDepartment,
     loginDepartment,
     getSingleDepartment,
     handleUpdateEmail,
     updateAndAuthenticateEmail,
+    updatePassword,
+    handleGetAllDepartment,
+    handleUpdateInformation
 }
