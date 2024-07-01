@@ -391,11 +391,40 @@ const updateAndAuthenticateEmail = async (req, res) => {
     }
 };
 
+const updatePassword = async(req,res)=>{
+    try {
+        const { password, userID } = req.body;
+        console.log(req.body)
+        if(!password || !userID){
+            return res.status(401).json({message:'No credentials found'})
+        }
+        
+        const saltRounds = 10;
+
+        bcrypt.hash(password, saltRounds, async function(err, hash) {
+            if (err) {
+                return res.status(500).json({ message: err.message });
+            }
+
+            try {
+                await department.findByIdAndUpdate(userID,{password:hash})
+
+                return res.status(201).json({ message: 'Password updated successfully' });
+            } catch (error) {
+                return res.status(500).json({ message: error.message });
+            }
+        });
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+}
+
 
 module.exports = {
     registerDepartment,
     loginDepartment,
     getSingleDepartment,
     handleUpdateEmail,
-    updateAndAuthenticateEmail
+    updateAndAuthenticateEmail,
+    updatePassword
 }
