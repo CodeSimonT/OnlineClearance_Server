@@ -464,7 +464,6 @@ const updatePassword = async(req,res)=>{
     }
 }
 
-
 module.exports = {
     registerDepartment,
     loginDepartment,
