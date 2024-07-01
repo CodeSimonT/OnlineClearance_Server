@@ -4,9 +4,8 @@ const cors = require("cors");
 require("dotenv").config();
 
 const departmentRoutes = require("./routes/usersRoutes/departmentRoutes");
-const StudentRoutes = require("./routes/usersRoutes/StudentRoutes
+const StudentRoutes = require("./routes/usersRoutes/StudentRoutes")
 const emailSender = require('./controllers/emailSender');
-
 // Middleware
 const app = express();
 app.use(express.json());
