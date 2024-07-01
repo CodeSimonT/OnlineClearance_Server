@@ -391,11 +391,10 @@ const updateAndAuthenticateEmail = async (req, res) => {
     }
 };
 
-
 module.exports = {
     registerDepartment,
     loginDepartment,
     getSingleDepartment,
     handleUpdateEmail,
-    updateAndAuthenticateEmail
+    updateAndAuthenticateEmail,
 }
