@@ -1,6 +1,7 @@
 const department = require('../../model/usersModel/departmentModel');
 const activeRequestSchema = require('../../model/activeRequestModel/activeRequest');
 const Token = require('../../model/token'); 
+const activeTermAndClearanceModel = require('../../model/activeClearance/activeTermAndClearance');
 
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
@@ -464,6 +465,30 @@ const updatePassword = async(req,res)=>{
     }
 }
 
+const handleUploadRequiredSignature = async (req, res) => {
+    try {
+        console.log(req.body)
+        // Delete the existing document
+        await activeTermAndClearanceModel.deleteMany({});
+
+        // Create the new document
+        await activeTermAndClearanceModel.create(req.body);
+
+        return res.status(201).json({ message: 'Success' });
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+};
+
+// const handleGetActiveClearance = async(req,res)=>{
+//     try {
+        
+//         const activeTerm = await activeTermAndClearanceModel.find();
+//     } catch (error) {
+//         return res.status(500).json({ message: error.message });
+//     }
+// }
+
 module.exports = {
     registerDepartment,
     loginDepartment,
@@ -472,5 +497,6 @@ module.exports = {
     updateAndAuthenticateEmail,
     updatePassword,
     handleGetAllDepartment,
-    handleUpdateInformation
+    handleUpdateInformation,
+    handleUploadRequiredSignature
 }

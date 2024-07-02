@@ -22,6 +22,16 @@ const studentListModel = mongoose.Schema(
       required: true,
       default: "",
     },
+    term:{
+      type:String,
+      required:true,
+      default:""
+    },
+    clearanceList:{
+      type:String,
+      required:true,
+      default:""
+    },
     academicLevel: {
       type: String,
       required: true,
