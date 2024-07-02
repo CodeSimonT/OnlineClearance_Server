@@ -32,6 +32,11 @@ const studentListModel = mongoose.Schema(
       required:true,
       default:""
     },
+    activeClearance:{
+      type:String,
+      required:true,
+      default:""
+    },
     academicLevel: {
       type: String,
       required: true,

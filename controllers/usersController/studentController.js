@@ -1,5 +1,5 @@
 const studentList = require("../../model/usersModel/studentModel");
-const clearanceListModel = require("../../model/usersModel/clearanceList")
+const clearanceListModel = require("../../model/clearance/clearanceList")
 
 const bcrypt = require("bcrypt");
 const jwt = require('jsonwebtoken');
@@ -41,6 +41,7 @@ const createStudent = async (req, res) => {
           program,
           academicLevel,
           clearanceList: clearanceList._id,
+          activeClearance:"",
           term,
           password: hash, // Set the hashed password here
         });
