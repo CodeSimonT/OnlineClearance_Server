@@ -7,7 +7,8 @@ const studentList = require('../../model/usersModel/studentModel')
 const handleGetActiveterm = async (req, res) => {
     try {
         const { userID } = req.query;
-        
+        console.log('fdsfs')
+        console.log(userID)
         const user = await studentList.findById(userID);
         if (!user) return res.status(404).json({ message: 'User not found' });
         
@@ -59,7 +60,6 @@ const handleGetActiveterm = async (req, res) => {
                     clearanceHistory.markModified('list');
                     await clearanceHistory.save();
                 }
-            return res.status(201).json({ message: 'Success' });
         };
 
         const processClearance = async (term) => {
@@ -76,22 +76,33 @@ const handleGetActiveterm = async (req, res) => {
                     active.status = activeTerm[0].isActive ? 'On-going' : 'Closed';
                     await active.save();
 
-                    return res.status(201).json({ message: 'Success' });
                 } else {
-                    return createClearance(term,active);
+                    createClearance(term,active);
                 }
             } else {
-                return createClearance(term,active);
+                createClearance(term,active);
             }
         };
 
+        //check educational level and term
         if (user.academicLevel.toLowerCase() === 'college') {
             const term = user.term.toLowerCase() === 'regular' ? activeTerm[0].term.collegeRegular : activeTerm[0].term.collegeAsean;
-            return processClearance(term);
+            processClearance(term);
         } else if (user.academicLevel.toLowerCase() === 'shs') {
-            return processClearance(activeTerm[0].term.shsTerm);
+            processClearance(activeTerm[0].term.shsTerm);
         }
 
+        if(user.activeClearance === ''){
+            return res.status(404).json({message:'No active clearance'});
+        }
+
+        const studentClearance = await activeClearanceModel.findById({_id:user.activeClearance})
+        console.log(studentClearance)
+        if(!studentClearance){
+            return res.status(404).json({message:'No active clearance'});
+        }
+
+        return res.status(201).json(studentClearance)
     } catch (error) {
         return res.status(500).json({ message: error.message });
     }

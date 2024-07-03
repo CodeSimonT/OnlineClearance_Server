@@ -479,15 +479,6 @@ const handleUploadRequiredSignature = async (req, res) => {
     }
 };
 
-// const handleGetActiveClearance = async(req,res)=>{
-//     try {
-        
-//         const activeTerm = await activeTermAndClearanceModel.find();
-//     } catch (error) {
-//         return res.status(500).json({ message: error.message });
-//     }
-// }
-
 module.exports = {
     registerDepartment,
     loginDepartment,
