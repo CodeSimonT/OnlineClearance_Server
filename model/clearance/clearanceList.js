@@ -5,7 +5,7 @@ const clearanceList = mongoose.Schema(
         list:{
             type:Array,
             required:false,
-            default:''
+            default:[]
         }
     },
     {

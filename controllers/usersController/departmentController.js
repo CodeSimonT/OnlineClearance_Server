@@ -440,7 +440,7 @@ const updateAndAuthenticateEmail = async (req, res) => {
 const updatePassword = async(req,res)=>{
     try {
         const { password, userID } = req.body;
-        console.log(req.body)
+
         if(!password || !userID){
             return res.status(401).json({message:'No credentials found'})
         }
@@ -467,7 +467,6 @@ const updatePassword = async(req,res)=>{
 
 const handleUploadRequiredSignature = async (req, res) => {
     try {
-        console.log(req.body)
         // Delete the existing document
         await activeTermAndClearanceModel.deleteMany({});
 

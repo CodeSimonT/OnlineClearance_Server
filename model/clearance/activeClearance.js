@@ -13,7 +13,7 @@ const activeClearance = mongoose.Schema(
             default:''
         },
         status:{
-            type:Strin,
+            type:String,
             required:true,
             default:'On-going'
         }

@@ -32,7 +32,7 @@ const createStudent = async (req, res) => {
       }
 
       try {
-        const clearanceList = await clearanceListModel.create({list:['']})
+        const clearanceList = await clearanceListModel.create({list:[]})
 
         await studentList.create({
           usn,
@@ -114,7 +114,7 @@ const loginStudent = async (req, res) => {
 const getSingleData = async(req,res)=>{
   try {
     const {userID} = req.query;
-    console.log(userID)
+
     const student = await studentList.findById(userID)
 
       if(!student){
