@@ -1,4 +1,5 @@
 const activeTermAndClearanceModel = require('../../model/activeClearance/activeTermAndClearance');
+const activeRequestSchema = require('../../model/activeRequestModel/activeRequest');
 const activeClearanceModel = require('../../model/clearance/activeClearance');
 const clearanceListModel = require('../../model/clearance/clearanceList');
 const department = require('../../model/usersModel/departmentModel');
@@ -154,8 +155,43 @@ const checkActiveTerm = async(req,res)=>{
     }
 }
 
+const handleSendRequestClearance = async(req,res)=>{
+    try {
+        const { deptID,clearanceID,userID } = req.body;
+
+            const designee = await department.findById(deptID)
+            const requestor = await studentList.findById(userID);
+
+                if(!designee){
+                    return res.status(404).json({message:'Department not found'})
+                }
+
+            if(designee.department === 'SSG'){
+                const requestList = await activeRequestSchema.findById({_id:designee.activeRequest})
+                console.log(requestList)
+            }else if(designee.department === 'IT/Property'){
+                const requestList = await activeRequestSchema.findById({_id:designee.activeRequest})
+                console.log(requestList)
+            }else if(designee.department === 'Accounting'){
+                const requestList = await activeRequestSchema.findById({_id:designee.activeRequest})
+                console.log(requestList)
+            }else if(designee.department === 'Registrar'){
+                const requestList = await activeRequestSchema.findById({_id:designee.activeRequest})
+                console.log(requestList)
+            }else if(designee.department === 'Academic'){
+                const requestList = await activeRequestSchema.findById({_id:designee.activeRequest})
+                console.log(requestList)
+            }
+
+        return res.status(201).json({message:'Success'})
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+}
+
 module.exports = {
     handleGetActiveterm,
     handleEndTerm,
-    checkActiveTerm
+    checkActiveTerm,
+    handleSendRequestClearance
 }
