@@ -146,6 +146,30 @@ const getSingleDepartment = async(req,res)=>{
     }
 }
 
+const getSingleDepartmentData = async(req,res)=>{
+    try {
+        const id = req.query.id;
+
+            const departmentData = await department.findById(id)
+
+                if(!departmentData){
+                    return res.status(404).json({message:"Department not found!"})
+                }
+
+                const newdepartmentData = {
+                    _id:departmentData._id,
+                    department:departmentData.department,
+                    firstName:departmentData.firstName,
+                    lastName:departmentData.lastName,
+                    activeRequest:departmentData.activeRequest
+                }
+
+            return res.status(201).json(newdepartmentData)
+    } catch (error) {
+        return res.status(500).json({ message: error });
+    }
+}
+
 const handleUpdateEmail = async (req, res) => {
     try {
         const { email, userID } = req.body;
@@ -488,5 +512,6 @@ module.exports = {
     updatePassword,
     handleGetAllDepartment,
     handleUpdateInformation,
-    handleUploadRequiredSignature
+    handleUploadRequiredSignature,
+    getSingleDepartmentData
 }
