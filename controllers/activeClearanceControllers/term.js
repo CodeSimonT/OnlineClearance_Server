@@ -19,6 +19,7 @@ const handleGetActiveterm = async (req, res) => {
         if (!departments) return res.status(404).json({ message: 'No department found' });
         
         const departmentID = departments.map(data => ({
+            departmentName:data.department,
             departmentId: data._id,
             deficiency: '',
             additionInformation: '',
@@ -155,39 +156,59 @@ const checkActiveTerm = async(req,res)=>{
     }
 }
 
-const handleSendRequestClearance = async(req,res)=>{
+const handleSendRequestClearance = async (req, res) => {
     try {
-        const { deptID,clearanceID,userID } = req.body;
+        const { deptID, clearanceID, userID } = req.body;
 
-            const designee = await department.findById(deptID)
-            const requestor = await studentList.findById(userID);
+        const designee = await department.findById(deptID);
+        const requestor = await studentList.findById(userID);
 
-                if(!designee){
-                    return res.status(404).json({message:'Department not found'})
-                }
+        if (!designee) return res.status(404).json({ message: 'Department not found' });
+        if (!requestor) return res.status(404).json({ message: 'User not found' });
 
-            if(designee.department === 'SSG'){
-                const requestList = await activeRequestSchema.findById({_id:designee.activeRequest})
-                console.log(requestList)
-            }else if(designee.department === 'IT/Property'){
-                const requestList = await activeRequestSchema.findById({_id:designee.activeRequest})
-                console.log(requestList)
-            }else if(designee.department === 'Accounting'){
-                const requestList = await activeRequestSchema.findById({_id:designee.activeRequest})
-                console.log(requestList)
-            }else if(designee.department === 'Registrar'){
-                const requestList = await activeRequestSchema.findById({_id:designee.activeRequest})
-                console.log(requestList)
-            }else if(designee.department === 'Academic'){
-                const requestList = await activeRequestSchema.findById({_id:designee.activeRequest})
-                console.log(requestList)
+        const studentClearance = await activeClearanceModel.findById(requestor.activeClearance);
+
+        if (!studentClearance || studentClearance.status === 'Closed') {
+            return res.status(401).json({ message: 'No active clearance' });
+        }
+
+        const requestList = await activeRequestSchema.findById(designee.activeRequest);
+        if (!requestList) return res.status(404).json({ message: 'List not found' });
+
+        if (requestList.request.some(data => data.clearanceID === clearanceID)) {
+            return res.status(403).json({ message: 'You have already sent a request' });
+        }
+
+        const departmentOrder = ['SSG', 'IT/Property', 'Accounting', 'Registrar'];
+        const currentDeptIndex = departmentOrder.indexOf(designee.department);
+
+        if (currentDeptIndex > 0) {
+            const previousDepartment = departmentOrder[currentDeptIndex - 1];
+            const requiredDepartment = studentClearance.requiredDepartments.find(
+                data => data.departmentName === previousDepartment
+            );
+
+            if (requiredDepartment.status === '') {
+                return res.status(403).json({
+                    message: `You need the ${previousDepartment} sign before you proceed to other departments`
+                });
             }
+        }
 
-        return res.status(201).json({message:'Success'})
+        requestList.request.push({
+            requestorName: requestor.name,
+            clearanceID,
+            status: 'Pending'
+        });
+
+        requestList.markModified('request');
+        await requestList.save();
+
+        return res.status(201).json({ message: 'Sent successfully' });
     } catch (error) {
         return res.status(500).json({ message: error.message });
     }
-}
+};
 
 module.exports = {
     handleGetActiveterm,
