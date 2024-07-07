@@ -504,31 +504,31 @@ const handleUploadRequiredSignature = async (req, res) => {
 };
 
 const handleGetActiveRequest = async (req, res) => {
-    // try {
-    //     const { id, page = 1, limit = 10 } = req.query;
+    try {
+        const { id, page = 1, limit = 10 } = req.query;
 
-    //     const pageInt = parseInt(page);
-    //     const limitInt = parseInt(limit);
+        const pageInt = parseInt(page);
+        const limitInt = parseInt(limit);
 
-    //     const requestList = await activeRequestSchema.findById(id);
-    //     console.log(requestList)
-    //     if (!requestList) {
-    //         return res.status(404).json({ message: "List not found" });
-    //     }
+        const requestList = await activeRequestSchema.findById(id);
 
-    //     const totalRequests = requestList.request.length;
-    //     const totalPages = Math.ceil(totalRequests / limitInt);
-    //     const paginatedRequests = requestList.request.slice((pageInt - 1) * limitInt, pageInt * limitInt);
+        if (!requestList) {
+            return res.status(404).json({ message: "List not found" });
+        }
 
-    //     return res.status(200).json({
-    //         requests: paginatedRequests,
-    //         currentPage: pageInt,
-    //         totalPages: totalPages,
-    //         totalRequests: totalRequests
-    //     });
-    // } catch (error) {
-    //     return res.status(500).json({ message: error.message });
-    // }
+        const totalRequests = requestList.request.length;
+        const totalPages = Math.ceil(totalRequests / limitInt);
+        const paginatedRequests = requestList.request.slice((pageInt - 1) * limitInt, pageInt * limitInt);
+
+        return res.status(200).json({
+            requests: paginatedRequests,
+            currentPage: pageInt,
+            totalPages: totalPages,
+            totalRequests: totalRequests
+        });
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
 };
 
 module.exports = {

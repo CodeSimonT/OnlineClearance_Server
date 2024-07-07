@@ -38,7 +38,7 @@ const handleGetActiveterm = async (req, res) => {
             const clearanceHistory = await clearanceListModel.findById({_id:user.clearanceList})
 
             //check if clearance is completed
-            const isCompleted = active.requiredDepartments.every(data => data.status !== '' && data.status !== 'pending');
+            const isCompleted = active?.requiredDepartments?.every(data => data.status !== '' && data.status !== 'pending');
 
             const newActiveData = {
                 _id:active._id,
@@ -179,7 +179,7 @@ const handleSendRequestClearance = async (req, res) => {
             return res.status(403).json({ message: 'You have already sent a request' });
         }
 
-        const departmentOrder = ['SSG', 'IT/Property', 'Accounting', 'Registrar'];
+        const departmentOrder = ['SSG', 'IT/Property', 'Accounting', 'Registrar', 'Academic'];
         const currentDeptIndex = departmentOrder.indexOf(designee.department);
 
         if (currentDeptIndex > 0) {
@@ -197,7 +197,9 @@ const handleSendRequestClearance = async (req, res) => {
 
         requestList.request.push({
             requestorName: requestor.name,
+            usn:requestor.usn,
             clearanceID,
+            term:studentClearance.term,
             status: 'Pending'
         });
 
@@ -210,9 +212,137 @@ const handleSendRequestClearance = async (req, res) => {
     }
 };
 
+const handleGetDeficiency = async(req,res)=>{
+    try {
+        const {id} = req.query;
+
+            const clearance = await activeClearanceModel.findById(id)
+
+                if(!clearance){
+                    return res.status(404).json({message:"Clearance not found"})
+                }
+                
+        return res.status(201).json(clearance.requiredDepartments)
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+}
+
+const addDeficiency = async (req, res) => {
+    try {
+        const { clearanceID, departmentID, itemsOfDeficiency, information } = req.body;
+        
+        const activeClearance = await activeClearanceModel.findById(clearanceID);
+        const departmentOwner = await department.findById(departmentID);
+
+        if (!activeClearance || !departmentOwner) {
+            return res.status(404).json({ message: "The clearance or department is not found!" });
+        }
+
+        const toUpdate = activeClearance.requiredDepartments.find(data => data.departmentName === departmentOwner.department);
+
+        if (!toUpdate) {
+            return res.status(404).json({ message: "Department is not found!" });
+        }
+
+        toUpdate.deficiency = itemsOfDeficiency;
+        toUpdate.additionalInformation = information;
+
+        activeClearance.markModified('requiredDepartments');
+        await activeClearance.save();
+
+        return res.status(201).json({ message: "Success" });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: error.message });
+    }
+};
+
+const handleApproveRequest = async (req, res) => {
+    try {
+        const { clearanceID, departmentID } = req.body;
+
+        // Fetch the clearance and designee (department)
+        const clearance = await activeClearanceModel.findById(clearanceID);
+        const designee = await department.findById(departmentID);
+
+        if (!clearance || !designee) {
+            return res.status(404).json({ message: "Clearance or department is not found" });
+        }
+
+        // Fetch the clearance request associated with the department
+        const clearanceRequest = await activeRequestSchema.findById(designee.activeRequest);
+        if (!clearanceRequest) {
+            return res.status(404).json({ message: "Request collection not found" });
+        }
+
+        // Update the status of the required department
+        const requiredDep = clearance.requiredDepartments.find(data => data.departmentName === designee.department);
+        if (!requiredDep) {
+            return res.status(404).json({ message: "Department in clearance is not found" });
+        }
+
+        requiredDep.status = 'Completed';
+        requiredDep.deficiency = '';
+        requiredDep.additionalInformation = ''; // Changed to match the previous corrected term
+
+        clearance.markModified('requiredDepartments');
+        await clearance.save();
+
+        // Remove the request from the clearance request list
+        clearanceRequest.request = clearanceRequest.request.filter(data => data.clearanceID !== clearanceID);
+        clearanceRequest.markModified('request');
+        await clearanceRequest.save();
+
+        return res.status(201).json({ message: "Success" });
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+};
+
+const getClearanceHistory = async(req,res)=>{
+    try {
+        const { id, page = 1, limit = 10 } = req.query;
+
+        const pageInt = parseInt(page);
+        const limitInt = parseInt(limit);
+
+            const studentData = await studentList.findById(id);
+
+                if(!studentData){
+                    return res.status(404).json({message:"Student not found"})
+                }
+
+        const clearanceHistory = await clearanceListModel.findById(studentData.clearanceList)
+
+                if(!clearanceHistory){
+                    return res.status(404).json({message:"History not found"})
+                }
+
+
+        const totalRequests = clearanceHistory.list.length;
+        const totalPages = Math.ceil(totalRequests / limitInt);
+        const paginatedRequests = clearanceHistory.list.slice((pageInt - 1) * limitInt, pageInt * limitInt);
+
+        return res.status(200).json({
+            requests: paginatedRequests,
+            currentPage: pageInt,
+            totalPages: totalPages,
+            totalRequests: totalRequests
+        });
+
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+}
+
 module.exports = {
     handleGetActiveterm,
     handleEndTerm,
     checkActiveTerm,
-    handleSendRequestClearance
+    handleSendRequestClearance,
+    handleGetDeficiency,
+    addDeficiency,
+    handleApproveRequest,
+    getClearanceHistory
 }
