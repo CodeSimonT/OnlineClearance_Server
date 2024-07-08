@@ -9,7 +9,8 @@ const { handleGetActiveterm,
         handleGetDeficiency, 
         addDeficiency,
         handleApproveRequest,
-        getClearanceHistory
+        getClearanceHistory,
+        handleClearancePreview
     } = require('../../controllers/activeClearanceControllers/term');
 const adminAuthenticateToken = require('../../controllers/authentication/adminAuthenticateToken');
 
@@ -18,6 +19,7 @@ router.get('/osc/api/get/checkActiveTerm', adminAuthenticateToken, checkActiveTe
 router.get('/osc/api/get/deficiency', adminAuthenticateToken, handleGetDeficiency )
 router.get('/osc/api/get/studentdeficiency', userAuthenticationToken, handleGetDeficiency )
 router.get('/osc/api/get/clearanceHistory', userAuthenticationToken, getClearanceHistory )
+router.get('/clearance/preview', handleClearancePreview )
 
 router.put('/osc/api/delete/handleEndTerm', adminAuthenticateToken, handleEndTerm )
 

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flowbite/dist/flowbite.css">
+    <title>Clearance Preview</title>
+</head>
+<body class="p-5">
+    <div class="w-full bg-red-900 flex items-center justify-between rounded-t-md p-3">
+        <div>
+            <h1 class='text-2xl text-white font-medium'>Clearance</h1>
+            <h2 class='text-white text-[12px]'>
+                <% if (data) { %>
+                    <%= formatTerm(data.term, userDataQuery.data.academicLevel) %>
+                <% } %>
+            </h2>
+        </div>
+        <div class='uppercase flex items-center gap-1 text-white text-[12px] font-medium'>
+            <% if (data) { %>
+                <% if (data.status === 'Closed') { %>
+                    <span class="inline-flex items-center bg-red-300 text-red-800 text-xs font-medium px-4 py-0.5 rounded-full">
+                        <span class="w-2 h-2 me-1 bg-red-500 rounded-full"></span>
+                        Closed
+                    </span>
+                <% } else { %>
+                    <span class="inline-flex items-center bg-orange-300 text-orange-800 text-xs font-medium px-4 py-0.5 rounded-full">
+                        <span class="w-2 h-2 me-1 bg-orange-500 rounded-full"></span>
+                        On-going
+                    </span>
+                <% } %>
+            <% } %>
+        </div>
+    </div>
+
+    <div class="relative overflow-x-auto border-2 rounded-b-md">
+        <table class="w-full text-sm text-left rtl:text-right text-gray-500">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-6 py-3">Designee</th>
+                    <th scope="col" class="px-6 py-3">Department</th>
+                    <th scope="col" class="px-6 py-3">Status</th>
+                    <th scope="col" class="px-6 py-3">Deficiency</th>
+                    <th scope="col" class="px-6 py-3">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (data && data.requiredDepartments.length > 0) { %>
+                    <% data.requiredDepartments.forEach((department, index) => { %>
+                        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"><%= department.designee %></td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= department.department %></td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <% if (department.status === '') { %>
+                                    <span class="inline-flex items-center bg-gray-300 text-gray-800 text-xs font-medium px-4 py-0.5 rounded-full">
+                                        <span class="w-2 h-2 me-1 bg-gray-500 rounded-full"></span> Unsigned
+                                    </span>
+                                <% } else { %>
+                                    <span class="inline-flex items-center bg-green-300 text-green-800 text-xs font-medium px-4 py-0.5 rounded-full">
+                                        <span class="w-2 h-2 me-1 bg-green-500 rounded-full"></span> Signed
+                                    </span>
+                                <% } %>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <% if (department.deficiency === '') { %>
+                                    <span class="inline-flex items-center bg-gray-300 text-gray-800 text-xs font-medium px-4 py-0.5 rounded-full">
+                                        <span class="w-2 h-2 me-1 bg-gray-500 rounded-full"></span> No deficiency
+                                    </span>
+                                <% } else { %>
+                                    <span class="inline-flex items-center bg-red-300 text-red-800 text-xs font-medium px-4 py-0.5 rounded-full">
+                                        <%= department.deficiency %>
+                                    </span>
+                                <% } %>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <button disabled>
+                                    Closed
+                                </button>
+                            </td>
+                        </tr>
+                    <% }); %>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/flowbite/dist/flowbite.js"></script>
+</body>
+</html>

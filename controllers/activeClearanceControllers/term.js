@@ -336,6 +336,76 @@ const getClearanceHistory = async(req,res)=>{
     }
 }
 
+const handleClearancePreview = async (req, res) => {
+    try {
+        const { clearanceID } = req.query;
+        const clearance = await activeClearanceModel.findById(clearanceID);
+
+        if (!clearance) {
+            return res.status(404).json({ message: "Clearance not found!" });
+        }
+
+        // Fetch department data for each required department
+        const departmentPromises = clearance.requiredDepartments.map(async (departmentList) => {
+            const departmentData = await department.findById(departmentList.departmentId);
+            if (departmentData) {
+                departmentList.designee = `${departmentData.firstName} ${departmentData.lastName}`;
+                departmentList.department = departmentData.department;
+            } else {
+                departmentList.designee = 'Not Found';
+                departmentList.department = 'Not Found';
+            }
+        });
+
+        await Promise.all(departmentPromises);
+
+        // Dummy function and data for userDataQuery
+        const userDataQuery = { data: { academicLevel: 'College' } };
+
+        // Format term function
+        const formatTerm = (term, academicLevel) => {
+            const syStart = 2000 + parseInt(term.slice(0, 2)); // Get the starting school year
+            const syEnd = syStart + 1; // Calculate the ending school year
+            const trimester = term[2]; // Get the trimester
+
+            let trimesterText = '';
+
+            if (academicLevel === 'College') {
+                switch (trimester) {
+                    case '1':
+                        trimesterText = '1st trimester';
+                        break;
+                    case '2':
+                        trimesterText = '2nd trimester';
+                        break;
+                    case '3':
+                        trimesterText = '3rd trimester';
+                        break;
+                    default:
+                        trimesterText = '';
+                }
+            } else {
+                switch (trimester) {
+                    case '1':
+                        trimesterText = '1st semester';
+                        break;
+                    case '2':
+                        trimesterText = '2nd semester';
+                        break;
+                    default:
+                        trimesterText = '';
+                }
+            }
+
+            return `S/Y ${syStart}-${syEnd} (${trimesterText})`;
+        };
+
+        res.render('clearancePreview', { data: clearance, userDataQuery, formatTerm });
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     handleGetActiveterm,
     handleEndTerm,
@@ -344,5 +414,6 @@ module.exports = {
     handleGetDeficiency,
     addDeficiency,
     handleApproveRequest,
-    getClearanceHistory
+    getClearanceHistory,
+    handleClearancePreview
 }
