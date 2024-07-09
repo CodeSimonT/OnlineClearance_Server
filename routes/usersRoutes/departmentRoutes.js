@@ -11,7 +11,9 @@ const { registerDepartment,
         handleUpdateInformation,
         handleUploadRequiredSignature,
         getSingleDepartmentData,
-        handleGetActiveRequest
+        handleGetActiveRequest,
+        handleResetPassword,
+        resetStudentPass
     } = require('../../controllers/usersController/departmentController');
 const adminAuthenticateToken = require('../../controllers/authentication/adminAuthenticateToken');
 const userAuthenticationToken = require('../../controllers/authentication/userAuthenticationToken');
@@ -20,7 +22,9 @@ router.post('/osc/api/registerDepartment', registerDepartment);
 router.post('/osc/api/loginDepartment', loginDepartment);
 router.post('/osc/api/changeEmail', adminAuthenticateToken, handleUpdateEmail);
 router.post('/osc/api/uploadActiveTerm', adminAuthenticateToken, handleUploadRequiredSignature);
+router.post("/osc/api/reset-department-password", resetStudentPass);
 
+router.get('/osc/form/resetdepartmentpassword', handleResetPassword);
 router.get('/osc/api/get/single/department', adminAuthenticateToken, getSingleDepartment)
 router.get('/osc/api/authenticateEmail', updateAndAuthenticateEmail);
 router.get('/osc/api/get/all/department', adminAuthenticateToken, handleGetAllDepartment);

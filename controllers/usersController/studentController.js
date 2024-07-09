@@ -457,6 +457,194 @@ const updatePassword = async(req,res)=>{
   }
 }
 
+const handleResetPassword = async (req, res) => {
+    try {
+        const { usn } = req.query;
+        const student = await studentList.findOne({ usn });
+
+        if (!student) {
+            const htmlResponse = `
+                <html>
+                <head>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            background-color: #f2f2f2;
+                            text-align: center;
+                            padding: 20px;
+                        }
+                        .container {
+                            max-width: 600px;
+                            margin: 0 auto;
+                            background-color: #ffffff;
+                            padding: 20px;
+                            border-radius: 8px;
+                            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+                        }
+                        h1 {
+                            color: #dc3545;
+                        }
+                        p {
+                            font-size: 18px;
+                        }
+                        .error-message {
+                            background-color: #f8d7da;
+                            color: #721c24;
+                            border: 1px solid #f5c6cb;
+                            padding: 10px;
+                            border-radius: 5px;
+                            margin-bottom: 10px;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <h1>Error</h1>
+                        <div class="error-message">
+                            <p>User not found!</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `;
+            res.setHeader('Content-Type', 'text/html');
+            return res.status(400).send(htmlResponse);
+        }
+
+        const serverUrl = process.env.SERVER_URL; // Pass the server URL to the frontend
+
+        const htmlForm = `
+            <html>
+            <head>
+                <style>
+                    body {
+                        font-family: Arial, sans-serif;
+                        background-color: #f2f2f2;
+                        text-align: center;
+                        padding: 20px;
+                    }
+                    .container {
+                        max-width: 600px;
+                        margin: 0 auto;
+                        background-color: #ffffff;
+                        padding: 20px;
+                        border-radius: 8px;
+                        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+                    }
+                    h1 {
+                        color: #7D0A0A;
+                    }
+                    p {
+                        font-size: 18px;
+                    }
+                    .form-group {
+                        margin-bottom: 15px;
+                    }
+                    .form-group label {
+                        display: block;
+                        text-align: left;
+                        margin-bottom: 5px;
+                        color:#484848ce;
+                    }
+                    .form-group input {
+                        width: 100%;
+                        padding: 10px;
+                        border: 1px solid #ccc;
+                        border-radius: 5px;
+                    }
+                    .form-group button {
+                        background-color: #7D0A0A;
+                        color: #fff;
+                        padding: 10px 15px;
+                        border: none;
+                        border-radius: 5px;
+                        cursor: pointer;
+                        font-size: 16px;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <h1>Reset Password</h1>
+                    <form id="resetPasswordForm">
+                        <div class="form-group">
+                            <label for="password">New Password</label>
+                            <input type="password" id="password" name="password" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="confirmPassword">Confirm Password</label>
+                            <input type="password" id="confirmPassword" name="confirmPassword" required>
+                        </div>
+                        <div class="form-group">
+                            <button type="button" onclick="resetPassword()">Reset Password</button>
+                        </div>
+                    </form>
+                </div>
+                <script>
+                    async function resetPassword() {
+                        const password = document.getElementById('password').value;
+                        const confirmPassword = document.getElementById('confirmPassword').value;
+                        
+                        if (password !== confirmPassword) {
+                            alert('Passwords do not match');
+                            return;
+                        }
+
+                        const response = await fetch('${serverUrl}/osc/api/reset-student-password', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ usn: '${usn}', password: password })
+                        });
+
+                        const result = await response.json();
+                        if (response.ok) {
+                            alert('Password reset successfully');
+                            window.close();
+                        } else {
+                            alert('Error: ' + result.message);
+                        }
+                    }
+                </script>
+            </body>
+            </html>
+        `;
+
+        res.setHeader('Content-Type', 'text/html');
+        return res.status(200).send(htmlForm);
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+};
+
+const resetStudentPass = async (req, res) => {
+    try {
+        const { usn, password } = req.body;
+        const student = await studentList.findOne({ usn });
+
+        if (!student) {
+            return res.status(400).json({ message: 'User not found' });
+        }
+
+        const saltRounds = 10;
+
+        bcrypt.hash(password, saltRounds, async function (err, hash) {
+            if (err) {
+              return res.status(500).json({ message: err.message });
+            }
+            
+            student.password = hash;
+            await student.save();
+
+            return res.status(200).json({ message: 'Password reset successfully' });
+          });
+
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
   createStudent,
   loginStudent,
@@ -465,5 +653,7 @@ module.exports = {
   getSingleData,
   handleUpdateEmail,
   updateAndAuthenticateEmail,
-  updatePassword
+  updatePassword,
+  handleResetPassword,
+  resetStudentPass
 };
