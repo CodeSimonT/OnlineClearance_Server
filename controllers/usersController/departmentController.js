@@ -4,7 +4,7 @@ const Token = require('../../model/token');
 const activeTermAndClearanceModel = require('../../model/activeClearance/activeTermAndClearance');
 
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 require('dotenv').config();
 
 const emailSender = require('../emailSender');

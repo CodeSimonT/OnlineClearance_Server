@@ -1,12 +1,12 @@
 const studentList = require("../../model/usersModel/studentModel");
-const clearanceListModel = require("../../model/clearance/clearanceList")
+const clearanceListModel = require("../../model/clearance/clearanceList");
 
-const bcrypt = require("bcrypt");
-const jwt = require('jsonwebtoken');
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const Token = require("../../model/token");
 const emailSender = require("../emailSender");
 
-require('dotenv').config();
+require("dotenv").config();
 
 const createStudent = async (req, res) => {
   try {
@@ -32,7 +32,7 @@ const createStudent = async (req, res) => {
       }
 
       try {
-        const clearanceList = await clearanceListModel.create({list:[]})
+        const clearanceList = await clearanceListModel.create({ list: [] });
 
         await studentList.create({
           usn,
@@ -41,7 +41,7 @@ const createStudent = async (req, res) => {
           program,
           academicLevel,
           clearanceList: clearanceList._id,
-          activeClearance:"",
+          activeClearance: "",
           term,
           password: hash, // Set the hashed password here
         });
@@ -111,73 +111,83 @@ const loginStudent = async (req, res) => {
   }
 };
 
-const getSingleData = async(req,res)=>{
+const getSingleData = async (req, res) => {
   try {
-    const {userID} = req.query;
+    const { userID } = req.query;
 
-    const student = await studentList.findById(userID)
+    const student = await studentList.findById(userID);
 
-      if(!student){
-        return res.status(404).json({message:'Student not found'})
-      }
-      
-      const filteredData = {
-        _id:student._id,
-        usn:student.usn,
-        name:student.name,
-        email:student.email,
-        program:student.program,
-        term:student.term,
-        clearanceList:student.clearanceList,
-        academicLevel:student.academicLevel
-      }
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
 
-      return res.status(201).json(filteredData)
+    const filteredData = {
+      _id: student._id,
+      usn: student.usn,
+      name: student.name,
+      email: student.email,
+      program: student.program,
+      term: student.term,
+      clearanceList: student.clearanceList,
+      academicLevel: student.academicLevel,
+    };
+
+    return res.status(201).json(filteredData);
   } catch (error) {
     return res.status(500).json({ message: "Internal server error" });
   }
-}
+};
 
 const handleUpdateEmail = async (req, res) => {
   try {
-      const { email, userID } = req.body;
+    const { email, userID } = req.body;
 
-      const user = await studentList.findById(userID);
-      if (!user) {
-          return res.status(404).json({ message: 'Student not found!' });
-      }
+    const user = await studentList.findById(userID);
+    if (!user) {
+      return res.status(404).json({ message: "Student not found!" });
+    }
 
-      // Generate token with expiration of 5 minutes
-      const token = jwt.sign(
-          { userID: user._id },
-          process.env.EMAIL_ACCESS_TOKEN,
-          { expiresIn: '5m' }
-      );
+    // Generate token with expiration of 5 minutes
+    const token = jwt.sign(
+      { userID: user._id },
+      process.env.EMAIL_ACCESS_TOKEN,
+      { expiresIn: "5m" }
+    );
 
-      // Store token in MongoDB
-      await Token.create({ token, email, userID, expiration: new Date(Date.now() + 5 * 60 * 1000) });
+    // Store token in MongoDB
+    await Token.create({
+      token,
+      email,
+      userID,
+      expiration: new Date(Date.now() + 5 * 60 * 1000),
+    });
 
-      const url = `${process.env.SERVER_URL}/osc/api/authenticateStudentEmail?authenticate=${token}&email=${email}`;
+    const url = `${process.env.SERVER_URL}/osc/api/authenticateStudentEmail?authenticate=${token}&email=${email}`;
 
-      emailSender(url, email);
+    emailSender(url, email);
 
-      return res.status(201).json({ message: 'A link to change your email address has been sent to your email.' });
+    return res
+      .status(201)
+      .json({
+        message:
+          "A link to change your email address has been sent to your email.",
+      });
   } catch (error) {
-      return res.status(500).json({ message: error.message });
+    return res.status(500).json({ message: error.message });
   }
 };
 
 const updateAndAuthenticateEmail = async (req, res) => {
   try {
-      const { authenticate, email } = req.query;
+    const { authenticate, email } = req.query;
 
-      // Find token in MongoDB
-      const token = await Token.findOne({ token: authenticate, email });
+    // Find token in MongoDB
+    const token = await Token.findOne({ token: authenticate, email });
 
-      const user = await studentList.findById(token.userID)
+    const user = await studentList.findById(token.userID);
 
-      if(!user){
-          const htmlResponse = `
+    if (!user) {
+      const htmlResponse = `
               <html>
               <head>
                   <style>
@@ -221,12 +231,12 @@ const updateAndAuthenticateEmail = async (req, res) => {
               </body>
               </html>
           `;
-          res.setHeader('Content-Type', 'text/html');
-          return res.status(400).send(htmlResponse);
-      }
+      res.setHeader("Content-Type", "text/html");
+      return res.status(400).send(htmlResponse);
+    }
 
-      if (!token) {
-          const htmlResponse = `
+    if (!token) {
+      const htmlResponse = `
               <html>
               <head>
                   <style>
@@ -270,13 +280,13 @@ const updateAndAuthenticateEmail = async (req, res) => {
               </body>
               </html>
           `;
-          res.setHeader('Content-Type', 'text/html');
-          return res.status(400).send(htmlResponse);
-      }
+      res.setHeader("Content-Type", "text/html");
+      return res.status(400).send(htmlResponse);
+    }
 
-      // Check if token is expired
-      if (token.expiration < new Date()) {
-          const htmlResponse = `
+    // Check if token is expired
+    if (token.expiration < new Date()) {
+      const htmlResponse = `
               <html>
               <head>
                   <style>
@@ -320,13 +330,13 @@ const updateAndAuthenticateEmail = async (req, res) => {
               </body>
               </html>
           `;
-          res.setHeader('Content-Type', 'text/html');
-          return res.status(400).send(htmlResponse);
-      }
+      res.setHeader("Content-Type", "text/html");
+      return res.status(400).send(htmlResponse);
+    }
 
-      // Check if token has already been used
-      if (token.used) {
-          const htmlResponse = `
+    // Check if token has already been used
+    if (token.used) {
+      const htmlResponse = `
               <html>
               <head>
                   <style>
@@ -370,20 +380,20 @@ const updateAndAuthenticateEmail = async (req, res) => {
               </body>
               </html>
           `;
-          res.setHeader('Content-Type', 'text/html');
-          return res.status(400).send(htmlResponse);
-      }
+      res.setHeader("Content-Type", "text/html");
+      return res.status(400).send(htmlResponse);
+    }
 
-      // Mark token as used
-      token.used = true;
-      await token.save();
+    // Mark token as used
+    token.used = true;
+    await token.save();
 
-      //update user email
-      user.email = email
-      await user.save();
+    //update user email
+    user.email = email;
+    await user.save();
 
-      // Return HTML response indicating success
-      const htmlResponse = `
+    // Return HTML response indicating success
+    const htmlResponse = `
           <html>
           <head>
               <style>
@@ -419,51 +429,53 @@ const updateAndAuthenticateEmail = async (req, res) => {
           </html>
       `;
 
-      // Set content type to HTML
-      res.setHeader('Content-Type', 'text/html');
+    // Set content type to HTML
+    res.setHeader("Content-Type", "text/html");
 
-      // Send HTML response
-      return res.status(200).send(htmlResponse);
+    // Send HTML response
+    return res.status(200).send(htmlResponse);
   } catch (error) {
-      return res.status(500).json({ message: error.message });
+    return res.status(500).json({ message: error.message });
   }
 };
 
-const updatePassword = async(req,res)=>{
+const updatePassword = async (req, res) => {
   try {
-      const { password, userID } = req.body;
+    const { password, userID } = req.body;
 
-      if(!password || !userID){
-          return res.status(401).json({message:'No credentials found'})
+    if (!password || !userID) {
+      return res.status(401).json({ message: "No credentials found" });
+    }
+
+    const saltRounds = 10;
+
+    bcrypt.hash(password, saltRounds, async function (err, hash) {
+      if (err) {
+        return res.status(500).json({ message: err.message });
       }
-      
-      const saltRounds = 10;
 
-      bcrypt.hash(password, saltRounds, async function(err, hash) {
-          if (err) {
-              return res.status(500).json({ message: err.message });
-          }
+      try {
+        await studentList.findByIdAndUpdate(userID, { password: hash });
 
-          try {
-              await studentList.findByIdAndUpdate(userID,{password:hash})
-
-              return res.status(201).json({ message: 'Password updated successfully' });
-          } catch (error) {
-              return res.status(500).json({ message: error.message });
-          }
-      });
+        return res
+          .status(201)
+          .json({ message: "Password updated successfully" });
+      } catch (error) {
+        return res.status(500).json({ message: error.message });
+      }
+    });
   } catch (error) {
-      return res.status(500).json({ message: error.message });
+    return res.status(500).json({ message: error.message });
   }
-}
+};
 
 const handleResetPassword = async (req, res) => {
-    try {
-        const { usn } = req.query;
-        const student = await studentList.findOne({ usn });
+  try {
+    const { usn } = req.query;
+    const student = await studentList.findOne({ usn });
 
-        if (!student) {
-            const htmlResponse = `
+    if (!student) {
+      const htmlResponse = `
                 <html>
                 <head>
                     <style>
@@ -507,13 +519,13 @@ const handleResetPassword = async (req, res) => {
                 </body>
                 </html>
             `;
-            res.setHeader('Content-Type', 'text/html');
-            return res.status(400).send(htmlResponse);
-        }
+      res.setHeader("Content-Type", "text/html");
+      return res.status(400).send(htmlResponse);
+    }
 
-        const serverUrl = process.env.SERVER_URL; // Pass the server URL to the frontend
+    const serverUrl = process.env.SERVER_URL; // Pass the server URL to the frontend
 
-        const htmlForm = `
+    const htmlForm = `
             <html>
             <head>
                 <style>
@@ -611,38 +623,37 @@ const handleResetPassword = async (req, res) => {
             </html>
         `;
 
-        res.setHeader('Content-Type', 'text/html');
-        return res.status(200).send(htmlForm);
-    } catch (error) {
-        return res.status(500).json({ message: error.message });
-    }
+    res.setHeader("Content-Type", "text/html");
+    return res.status(200).send(htmlForm);
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
 };
 
 const resetStudentPass = async (req, res) => {
-    try {
-        const { usn, password } = req.body;
-        const student = await studentList.findOne({ usn });
+  try {
+    const { usn, password } = req.body;
+    const student = await studentList.findOne({ usn });
 
-        if (!student) {
-            return res.status(400).json({ message: 'User not found' });
-        }
-
-        const saltRounds = 10;
-
-        bcrypt.hash(password, saltRounds, async function (err, hash) {
-            if (err) {
-              return res.status(500).json({ message: err.message });
-            }
-            
-            student.password = hash;
-            await student.save();
-
-            return res.status(200).json({ message: 'Password reset successfully' });
-          });
-
-    } catch (error) {
-        return res.status(500).json({ message: error.message });
+    if (!student) {
+      return res.status(400).json({ message: "User not found" });
     }
+
+    const saltRounds = 10;
+
+    bcrypt.hash(password, saltRounds, async function (err, hash) {
+      if (err) {
+        return res.status(500).json({ message: err.message });
+      }
+
+      student.password = hash;
+      await student.save();
+
+      return res.status(200).json({ message: "Password reset successfully" });
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
 };
 
 module.exports = {
@@ -655,5 +666,5 @@ module.exports = {
   updateAndAuthenticateEmail,
   updatePassword,
   handleResetPassword,
-  resetStudentPass
+  resetStudentPass,
 };
